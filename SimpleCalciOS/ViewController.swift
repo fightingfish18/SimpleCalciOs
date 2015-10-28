@@ -2,7 +2,7 @@
 //  ViewController.swift
 //  SimpleCalciOS
 //
-//  Created by Admin on 10/21/15.
+//  Created by Smyth on 10/21/15.
 //  Copyright © 2015 Smyth May. All rights reserved.
 //
 
@@ -25,15 +25,17 @@ class ViewController: UIViewController {
     @IBOutlet weak var minus: UIButton!
     @IBOutlet weak var divide: UIButton!
     @IBOutlet weak var factorial: UIButton!
-    @IBOutlet weak var submit: UIButton!
     @IBOutlet weak var multiply: UIButton!
     @IBOutlet weak var rpn: UIButton!
     @IBOutlet weak var average: UIButton!
     @IBOutlet weak var clear: UIButton!
+    @IBOutlet weak var submit: UIButton!
+    
     var isRpn : Bool?;
     var numbers : [Int]?;
     var operations : [String]?;
     var currentInput : String?;
+    var wasAnswer : Bool?;
 
     
     
@@ -42,6 +44,7 @@ class ViewController: UIViewController {
         currentInput = "";
         numbers = [];
         isRpn = false;
+        wasAnswer = false;
         operations = [];
         One.addTarget(self, action:"collectUserInput:", forControlEvents: .TouchUpInside);
         two.addTarget(self, action:"collectUserInput:", forControlEvents: .TouchUpInside);
@@ -72,6 +75,17 @@ class ViewController: UIViewController {
     }
     
     @IBAction func collectUserInput(sender : UIButton) {
+        if (wasAnswer!) {
+            if (sender == One || sender == two || sender == three || sender == four || sender == five || sender == six || sender == seven || sender == eight || sender == nine || sender == zero) {
+                calcText.text == "";
+                numbers = [];
+                operations = [];
+                currentInput = "";
+            } else if (sender != clear || sender != submit || sender != rpn) {
+                currentInput = calcText.text;
+            }
+            wasAnswer = false;
+        }
         switch(sender) {
         case One:
             currentInput! += "1";
@@ -108,6 +122,8 @@ class ViewController: UIViewController {
                 let currentNumber : Int? = Int(currentInput!);
                 numbers!.append(currentNumber!);
             }
+            currentInput = "";
+            operations!.append("count");
             calcText.text = String(numbers!.count);
         case plus:
             if (currentInput!.characters.count > 0) {
@@ -144,8 +160,10 @@ class ViewController: UIViewController {
                 let currentNumber : Int? = Int(currentInput!);
                 numbers!.append(currentNumber!);
             }
+            operations!.append("fact");
             calcText.text = "";
             currentInput = "";
+            doMath();
         case multiply:
             if (currentInput!.characters.count > 0) {
                 let currentNumber : Int? = Int(currentInput!);
@@ -174,6 +192,12 @@ class ViewController: UIViewController {
             numbers = [];
             calcText.text = "";
         case submit:
+            print(operations);
+            print(numbers);
+            if (currentInput!.characters.count > 0) {
+                let currentNumber : Int? = Int(currentInput!);
+                numbers!.append(currentNumber!);
+            }
             if (numbers!.count > 0 && operations!.count > 0) {
                 doMath();
             }
@@ -185,20 +209,53 @@ class ViewController: UIViewController {
     }
     
     func doMath() {
+        var currentResult = 0;
+        var opNum = 0;
         for (var i = 0; i < numbers!.count; i++) {
+            if (i == 0) {
+                currentResult = numbers![i];
+            }
             if (numbers!.count == 1) {
                 if (operations![i] == "fact") {
-                    factorialOp(numbers![i]);
+                    currentResult = factorialOp(currentResult);
                 }
             } else {
-                
+                if (i > 0) {
+                    switch operations![opNum] {
+                    case "+":
+                        currentResult += numbers![i];
+                    case "-":
+                        currentResult -= numbers![i];
+                    case "*":
+                        currentResult *= numbers![i];
+                    case "/":
+                        currentResult /= numbers![i];
+                    case "avg":
+                        var sum = 0;
+                        for (var k = 0; k < numbers!.count; k++) {
+                            sum += numbers![k];
+                        }
+                        currentResult = sum / numbers!.count;
+                    default:
+                        currentResult += 0;
+                    }
+                    opNum++;
+                }
             }
         }
+        numbers = [];
+        operations = [];
+        calcText.text = String(currentResult);
+        wasAnswer = true;
         
     }
     
-    func factorialOp(num : Int) {
-        
+    func factorialOp(num : Int) -> Int {
+        var result = 1;
+        for (var i = numbers![0]; i > 0; i--) {
+            result *= i;
+        }
+        return result;
     }
     
     
